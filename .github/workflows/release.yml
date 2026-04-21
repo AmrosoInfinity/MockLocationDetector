@@ -3,8 +3,8 @@ name: Build & Release APK
 on:
   push:
     branches:
-      - main   # jalankan setiap kali ada commit ke branch main
-  workflow_dispatch: # bisa dijalankan manual dari tab Actions
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,10 +20,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build APK
         run: ./gradlew assembleDebug
 
-      - name: Upload to Release
+      - name: Release APK
         uses: softprops/action-gh-release@v1
         with:
           files: app/build/outputs/apk/debug/app-debug.apk
