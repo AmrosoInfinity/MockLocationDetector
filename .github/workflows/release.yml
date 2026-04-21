@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write   # penting: beri izin menulis release
+
 jobs:
   build:
     runs-on: ubuntu-latest
