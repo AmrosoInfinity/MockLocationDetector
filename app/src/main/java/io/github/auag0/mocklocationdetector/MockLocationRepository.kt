@@ -122,7 +122,6 @@ class MockLocationRepository(private val context: Context) {
     private fun getHookDetections(): List<DetectionResult> {
     val detections = mutableListOf<DetectionResult>()
 
-    // --- Provider check ---
     try {
         val providerMethod = Location::class.java.getMethod("getProvider")
         val declaringClass = providerMethod.declaringClass.name
@@ -141,7 +140,6 @@ class MockLocationRepository(private val context: Context) {
         detections += DetectionResult("Location.provider", "Error", true)
     }
 
-    // --- Extras check ---
     try {
         val extrasMethod = Location::class.java.getMethod("getExtras")
         val declaringClass = extrasMethod.declaringClass.name
@@ -160,7 +158,6 @@ class MockLocationRepository(private val context: Context) {
         detections += DetectionResult("Location.extras", "Error", true)
     }
 
-    // --- isMock check (API 31+) ---
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         try {
             val isMockMethod = Location::class.java.getMethod("isMock")
