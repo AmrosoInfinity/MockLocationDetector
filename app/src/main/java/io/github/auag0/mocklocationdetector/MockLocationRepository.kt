@@ -120,33 +120,67 @@ class MockLocationRepository(private val context: Context) {
     }
 
     private fun getHookDetections(): List<DetectionResult> {
-        val detections = mutableListOf<DetectionResult>()
-        val location = Location("mock")
+    val detections = mutableListOf<DetectionResult>()
 
-        val isProviderDetected = location.provider != "mock"
+    // --- Provider check ---
+    try {
+        val providerMethod = Location::class.java.getMethod("getProvider")
+        val declaringClass = providerMethod.declaringClass.name
+        val stack = Thread.currentThread().stackTrace
+        val isIntercepted = stack.any {
+            it.className.contains("XposedBridge") || it.className.contains("frida")
+        }
+        val isProviderHooked = declaringClass != "android.location.Location" || isIntercepted
+
         detections += DetectionResult(
             "Location.provider",
-            "${if (isProviderDetected) "" else "Not "}Hooked",
-            isProviderDetected
+            if (isProviderHooked) "Hooked" else "Not Hooked",
+            isProviderHooked
         )
+    } catch (e: Exception) {
+        detections += DetectionResult("Location.provider", "Error", true)
+    }
 
-        location.extras = Bundle().apply { putBoolean("mockLocation", true) }
-        val isExtrasDetected = location.extras?.getBoolean("mockLocation") != true
+    // --- Extras check ---
+    try {
+        val extrasMethod = Location::class.java.getMethod("getExtras")
+        val declaringClass = extrasMethod.declaringClass.name
+        val stack = Thread.currentThread().stackTrace
+        val isIntercepted = stack.any {
+            it.className.contains("XposedBridge") || it.className.contains("frida")
+        }
+        val isExtrasHooked = declaringClass != "android.location.Location" || isIntercepted
+
         detections += DetectionResult(
             "Location.extras",
-            "${if (isExtrasDetected) "" else "Not "}Hooked",
-            isExtrasDetected
+            if (isExtrasHooked) "Hooked" else "Not Hooked",
+            isExtrasHooked
         )
+    } catch (e: Exception) {
+        detections += DetectionResult("Location.extras", "Error", true)
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            location.isMock = true
-            val isMockDetected = !location.isMock
+    // --- isMock check (API 31+) ---
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        try {
+            val isMockMethod = Location::class.java.getMethod("isMock")
+            val declaringClass = isMockMethod.declaringClass.name
+            val stack = Thread.currentThread().stackTrace
+            val isIntercepted = stack.any {
+                it.className.contains("XposedBridge") || it.className.contains("frida")
+            }
+            val isMockHooked = declaringClass != "android.location.Location" || isIntercepted
+
             detections += DetectionResult(
                 "Location.isMock",
-                "${if (isMockDetected) "" else "Not "}Hooked",
-                isMockDetected
+                if (isMockHooked) "Hooked" else "Not Hooked",
+                isMockHooked
             )
+        } catch (e: Exception) {
+            detections += DetectionResult("Location.isMock", "Error", true)
         }
-        return detections
     }
+
+    return detections
+}
 }
